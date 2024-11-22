@@ -136,21 +136,7 @@ function FormDesign() {
       }
     });
   };
-  /* const handleChecklistChange = (e) => {
-    const { name, checked } = e.target;
-    const keys = name.split(".");
-    if (keys.length > 1) {
-      setChecklist((prevChecklist) => ({
-        ...prevChecklist,
-        [keys[0]]: {
-          ...prevChecklist[keys[0]],
-          [keys[1]]: checked,
-        },
-      }));
-    } else {
-      setChecklist({ ...checklist, [name]: checked });
-    }
-  }; */
+
   const getLabel = (key, parentKey = null) => {
     if (parentKey) {
       return labelMapping[parentKey]?.[key] || key; // Nested key
@@ -178,60 +164,141 @@ function FormDesign() {
   }, []);
 
   const midpoint = Math.ceil(allItems.length / 2);
-  const leftTableItems = allItems.slice(0, midpoint);
-  const rightTableItems = allItems.slice(midpoint);
-
+  // const leftTableItems = allItems.slice(0, midpoint);
+  // const rightTableItems = allItems.slice(midpoint);
+  const areAllNestedChecked = (nestedItems) => {
+    return Object.values(nestedItems).every((value) => value === true);
+  };
   const handleChecklistChange = (e) => {
     const { name, checked } = e.target;
-    if (name.includes(".")) {
-      const [parent, child] = name.split(".");
-      setChecklist((prev) => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
+
+    setChecklist((prev) => {
+      const newChecklist = { ...prev };
+
+      if (name.includes(".")) {
+        // Handle nested checkbox change
+        const [parent, child] = name.split(".");
+        newChecklist[parent] = {
+          ...newChecklist[parent],
           [child]: checked,
-        },
-      }));
-    } else {
-      setChecklist((prev) => ({
-        ...prev,
-        [name]: checked,
-      }));
-    }
+        };
+
+        // Update parent checkbox based on all nested items
+        newChecklist[parent].checked = areAllNestedChecked(
+          newChecklist[parent]
+        );
+      } else if (typeof newChecklist[name] === "object") {
+        // Handle parent checkbox change
+        const updatedNested = {};
+        Object.keys(newChecklist[name]).forEach((key) => {
+          updatedNested[key] = checked;
+        });
+        newChecklist[name] = {
+          ...updatedNested,
+          checked: checked,
+        };
+      } else {
+        // Handle regular checkbox change
+        newChecklist[name] = checked;
+      }
+
+      return newChecklist;
+    });
   };
 
-  const ChecklistTable = ({ items }) => (
-    <div className="overflow-auto">
-      <table className="w-full border-collapse border border-gray-300">
-        <thead>
-          <tr className="bg-gray-50">
-            <th className="border border-gray-300 px-4 py-2 text-left w-16">
-              √
-            </th>
-            <th className="border border-gray-300 px-4 py-2 text-left">
-              Description
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map(({ key, label, checked }) => (
-            <tr key={key} className="hover:bg-gray-50">
-              <td className="border border-gray-300 px-4 py-2 text-center">
-                <input
-                  type="checkbox"
-                  name={key}
-                  checked={checked}
-                  onChange={handleChecklistChange}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-              </td>
-              <td className="border border-gray-300 px-4 py-2">{label}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  const ChecklistTable = ({ items }) => {
+    const renderNestedItem = (key, label, checked, subItems) => {
+      // Check if this is a parent item with nested checkboxes
+      const hasNestedItems = subItems && typeof subItems === "object";
+
+      // For parent items, compute checked state based on nested items
+      const isParentChecked = hasNestedItems
+        ? areAllNestedChecked(checklist[key])
+        : checked;
+
+      return (
+        <div key={key} className="checklist-item">
+          {/* Parent item */}
+          <div className="flex items-center parent-item p-3 border rounded-lg mb-2 bg-gray-50">
+            <input
+              type="checkbox"
+              name={key}
+              checked={isParentChecked}
+              onChange={handleChecklistChange}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
+            />
+            <span className="font-medium">{label}</span>
+          </div>
+
+          {/* Nested items */}
+          {hasNestedItems && (
+            <div className="nested-items ml-6 space-y-2 mb-4">
+              {Object.entries(subItems).map(([subKey, subLabel]) => (
+                <div
+                  key={`${key}.${subKey}`}
+                  className="flex items-center nested-item p-2 border-l-2 border-gray-300 pl-4"
+                >
+                  <input
+                    type="checkbox"
+                    name={`${key}.${subKey}`}
+                    checked={checklist[key][subKey] || false}
+                    onChange={handleChecklistChange}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
+                  />
+                  <span className="text-gray-700">{subLabel}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    return (
+      <div className="checklist-container p-4 bg-white rounded-lg shadow">
+        {items.map(({ key, label, checked, subItems }) =>
+          renderNestedItem(key, label, checked, subItems)
+        )}
+      </div>
+    );
+  };
+
+  // Modify how items are processed to maintain nested structure
+  const processChecklistItems = () => {
+    const items = [];
+    Object.entries(labelMapping).forEach(([key, value]) => {
+      if (typeof value === "object") {
+        // Format the parent label to be more readable
+        const formattedLabel = key
+          .split(/(?=[A-Z])/)
+          .map(
+            (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+          )
+          .join(" ");
+
+        items.push({
+          key,
+          label: formattedLabel,
+          checked: checklist[key] || false,
+          subItems: value,
+        });
+      } else {
+        items.push({
+          key,
+          label: value,
+          checked: checklist[key] || false,
+        });
+      }
+    });
+
+    const midpoint = Math.ceil(items.length / 2);
+    return {
+      leftTableItems: items.slice(0, midpoint),
+      rightTableItems: items.slice(midpoint),
+    };
+  };
+
+  const { leftTableItems, rightTableItems } = processChecklistItems();
 
   // Handle signature canvas save as image
   const handleSaveSignature = () => {
@@ -365,24 +432,6 @@ function FormDesign() {
       <div className="bg-white  border-4 rounded-lg shadow relative m-10">
         <div className="flex items-start justify-between p-5 border-b rounded-t">
           <h3 className="text-xl font-semibold">Create New Report Here</h3>
-          {/*  <button
-            type="button"
-            className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
-            data-modal-toggle="product-modal"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              ></path>
-            </svg>
-          </button> */}
         </div>
 
         <div className="p-6 space-y-6">
@@ -446,36 +495,37 @@ function FormDesign() {
                 htmlFor="additionalRemarks"
                 className="text-sm font-medium text-gray-900 block mb-2"
               >
-                additionalRemarks
+                Additional Remarks
               </label>
-              <input
-                type="text"
+              <textarea
                 name="additionalRemarks"
                 value={formData.additionalRemarks}
                 onChange={handleInputChange}
                 id="additionalRemarks"
                 className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
-                placeholder="additionalRemarks"
-                required=""
-              />
+                placeholder="Add your remarks here"
+                rows="4"
+                required
+              ></textarea>
             </div>
+
             <div className="col-span-6 sm:col-span-3">
               <label
                 htmlFor="specificNonCompliances"
                 className="text-sm font-medium text-gray-900 block mb-2"
               >
-                specificNonCompliances
+                Specific Non-Compliances
               </label>
-              <input
-                type="text"
+              <textarea
                 name="specificNonCompliances"
                 value={formData.specificNonCompliances}
                 onChange={handleInputChange}
                 id="specificNonCompliances"
                 className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
-                placeholder="specificNonCompliances"
-                required=""
-              />
+                placeholder="Describe any specific non-compliances here"
+                rows="4"
+                required
+              ></textarea>
             </div>
 
             <div className="col-span-6 sm:col-span-3">
@@ -521,18 +571,18 @@ function FormDesign() {
                 htmlFor="siteVisitCheckingDetails"
                 className="text-sm font-medium text-gray-900 block mb-2"
               >
-                siteVisitCheckingDetails
+                Site Visit Checking Details
               </label>
-              <input
-                type="text"
+              <textarea
                 name="siteVisitCheckingDetails"
                 value={formData["siteVisitCheckingDetails"]}
                 onChange={handleInputChange}
                 id="siteVisitCheckingDetails"
                 className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
-                placeholder="siteVisitCheckingDetails"
-                required=""
-              />
+                placeholder="Provide details of the site visit checking here"
+                rows="4"
+                required
+              ></textarea>
             </div>
 
             {/* Image Upload */}
@@ -652,34 +702,23 @@ function FormDesign() {
               </div>
             </div>
 
-            {/* <div className="col-span-full">
-              <label
-                htmlFor="product-details"
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
-                Product Details
-              </label>
-              <textarea
-                id="product-details"
-                rows="6"
-                className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-4"
-                placeholder="Details"
-              ></textarea>
-            </div> */}
-
             <div className="w-full bg-white rounded-lg shadow-sm p-6 col-span-full">
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-4">
                   General Compliance Checklist
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-gray-600 mb-6">
                   The following points must be ensured to be complied with
                   before concreting:
                 </p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <ChecklistTable items={leftTableItems} />
-                <ChecklistTable items={rightTableItems} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="checklist-section">
+                  <ChecklistTable items={leftTableItems} />
+                </div>
+                <div className="checklist-section">
+                  <ChecklistTable items={rightTableItems} />
+                </div>
               </div>
             </div>
           </div>
@@ -722,9 +761,6 @@ function FormDesign() {
             </button>
           </div>
 
-          {/* Upload Image Section */}
-
-          {/* Show Signature Image Preview (Drawn Signature) */}
           {signatureImage && (
             <div className="mt-6 text-center ">
               <h3 className="text-xl font-medium text-gray-700 mb-2">
@@ -745,13 +781,57 @@ function FormDesign() {
           >
             Save all
           </button>
-          {/* <button
-            className="text-white bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-            type="submit"
-          >
-            Clear All
-          </button> */}
         </div>
+        <style>{`
+          .checklist-container {
+            border: 1px solid #e5e7eb;
+          }
+
+          .checklist-item:not(:last-child) {
+            margin-bottom: 1rem;
+          }
+
+          .parent-item {
+            transition: all 0.2s ease-in-out;
+          }
+
+          .parent-item:hover {
+            background-color: #f8fafc;
+          }
+
+          .nested-items {
+            position: relative;
+          }
+
+          .nested-items::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 2px;
+            background-color: #e5e7eb;
+          }
+
+          .nested-item {
+            position: relative;
+            transition: all 0.2s ease-in-out;
+          }
+
+          .nested-item:hover {
+            background-color: #f8fafc;
+          }
+
+          .nested-item::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: -2px;
+            width: 12px;
+            height: 2px;
+            background-color: #e5e7eb;
+          }
+        `}</style>
       </div>
     </form>
   );
