@@ -8,7 +8,9 @@ const helmet = require("helmet");
 const hpp = require("hpp");
 const cookieparser = require("cookie-parser");
 const compression = require("compression");
+const AppError = require("./utils/appErrors");
 const siteRouter = require("./Routes/siteReportRoutes");
+
 const userRouter = require("./Routes/userRoutes");
 const app = express();
 app.use(express.json());
@@ -19,7 +21,28 @@ const ratelimiter = limiter({
   windowMs: 60 * 60 * 1000,
   message: "too many request from this api please try again in an hour",
 });
+const cors = require("cors");
 
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
+app.use(express.json());
+//app.use(express.urlencoded({ extended: true }));
+app.use(cookieparser());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+    origin: true,
+    optionsSuccessStatus: 200,
+    allowedHeaders: [
+      "set-cookie",
+      "Content-Type",
+      "Access-Control-Allow-Origin",
+      "Access-Control-Allow-Credentials",
+    ],
+  })
+);
 app.use(cookieparser());
 
 //data sanitization against NoSQL query injection
