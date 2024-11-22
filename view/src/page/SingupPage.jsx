@@ -3,6 +3,8 @@ import { useState } from "react";
 import axios from "axios";
 import loginImage from "../assets/image.png";
 import { Link } from "react-router-dom";
+import Loading from "../components/Animation/Loading";
+import SnackBar from "../components/Animation/SnackBar";
 const SignupPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -30,7 +32,7 @@ const SignupPage = () => {
           },
         };
         const res = await axios.post(
-          "api/v1/users/signup",
+          "http://localhost:3000/api/v1/user/signup",
           {
             name,
             email,
@@ -168,22 +170,25 @@ const SignupPage = () => {
                       {errors.confirmPassword}
                     </div>
                   )}
-
-                  <button className="mt-5 tracking-wide font-semibold bg-blue-900 text-gray-100 w-full py-4 rounded-lg hover:bg-indigo-700 transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none">
-                    <svg
-                      className="w-6 h-6 -ml-2"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-                      <circle cx="8.5" cy="7" r="4" />
-                      <path d="M20 8v6M23 11h-6" />
-                    </svg>
-                    <span className="ml-3">Sign Up</span>
-                  </button>
+                  {loading ? (
+                    <Loading />
+                  ) : (
+                    <button className="mt-5 tracking-wide font-semibold bg-blue-900 text-gray-100 w-full py-4 rounded-lg hover:bg-indigo-700 transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none">
+                      <svg
+                        className="w-6 h-6 -ml-2"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                        <circle cx="8.5" cy="7" r="4" />
+                        <path d="M20 8v6M23 11h-6" />
+                      </svg>
+                      <span className="ml-3">Sign Up</span>
+                    </button>
+                  )}
                   <p className="mt-6 text-xs text-gray-600 text-center">
                     Already have an account?{" "}
                     <Link to="/signin">
@@ -195,6 +200,15 @@ const SignupPage = () => {
                 </div>
               </div>
             </div>
+            {loginError && (
+              <SnackBar
+                message="Signup failed. Please try again."
+                type="error"
+              />
+            )}
+            {showSuccessAlert && (
+              <SnackBar message="Signup successfull!" type="success" />
+            )}
           </form>
         </div>
       </div>

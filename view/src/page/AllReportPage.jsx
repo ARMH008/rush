@@ -8,27 +8,27 @@ const truncateText = (text, limit) => {
 };
 
 const AllReportPage = () => {
-  const [insurances, setInsurances] = useState([]);
+  const [reportData, setReportData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
   useEffect(function () {
-    async function getInsurances() {
+    async function fetchReportData() {
       try {
         setIsLoading(true);
         setError("");
         const response = await axios.get(
-          `http://127.0.0.1:3000/api/v1/insurance`
+          `http://127.0.0.1:3000/api/v1/sitereport`
         );
-        console.log("response ", response.data.data.policies); // Handle the response as needed
+        console.log("response ", response.data.data.data); // Handle the response as needed
 
         if (response.status !== 200)
           throw new Error("Something went wrong with fetchintg crops");
 
-        const cropsData = response.data.data.policies;
-        if (cropsData.length === 0) {
+        const allReport = response.data.data.data;
+        if (allReport.length === 0) {
           throw new Error("No crops found");
         }
-        setInsurances(cropsData);
+        setReportData(allReport);
 
         setIsLoading(false);
       } catch (err) {
@@ -37,7 +37,7 @@ const AllReportPage = () => {
         setIsLoading(false);
       }
     }
-    getInsurances();
+    fetchReportData();
   }, []);
   return (
     <>
@@ -61,99 +61,115 @@ const AllReportPage = () => {
         </label>
 
         {/* Report container */}
-        <div className="flex flex-col gap-6 p-4 mt-10">
+        {/*  <div className="flex flex-col gap-6 p-4 mt-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-            <div
-              key=""
-              className="bg-white border border-gray-300 rounded-lg shadow-md p-4"
-            >
-              <div className="p-5 ">
-                <h2 className="text-2xl font-semibold text-green-500 mb-4">
-                  Report Name
-                </h2>
-                <p className="text-gray-500">
-                  Comprehensive coverage for all crop types, with premium
-                  support. Comprehensive coverage for all crop types, with
-                  premium support. Comprehensive coverage for all crop types,
-                  with premium support. Comprehensive coverage for all crop
-                  types, with premium support. Reort Summary in short....
-                </p>
-                <Link to="">ViewMore</Link>
-                <div className="flex justify-end mt-8 ">
-                  <button className=" bg-gray-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    View More
-                  </button>
+            {reportData.map((report) => (
+              <div
+                key={report._id}
+                className="bg-white border border-gray-300 rounded-lg shadow-md p-4"
+              >
+                <div className="p-5 ">
+                  <h2 className="text-2xl font-semibold text-green-500 mb-4">
+                    Report Name
+                  </h2>
+
+                  <p className="flex items-center">
+                    <span className="font-semibold text-gray-700 w-32">
+                      Engineer:
+                    </span>
+                    <span className="text-gray-600">
+                      {report.jmStaffEngineer.name}
+                    </span>
+                  </p>
+                  <p className="flex items-center mt-3">
+                    <span className="font-semibold text-gray-700 w-32">
+                      Client:
+                    </span>
+                    <span className="text-gray-600">{report.clientName}</span>
+                  </p>
+                  <p className="flex items-center mt-2">
+                    <span className="font-semibold text-gray-700 w-32">
+                      Architect:
+                    </span>
+                    <span className="text-gray-600">
+                      {report.architectName}
+                    </span>
+                  </p>
+                  <p className="flex items-center mt-2">
+                    <span className="font-semibold text-gray-700 w-32">
+                      Report Created On:
+                    </span>
+                    <span className="text-gray-600 ">
+                      {new Date(report.date).toLocaleDateString()}
+                    </span>
+                  </p>
+
+                  <div className="flex justify-end mt-8 ">
+                    <Link to={`/allReport/${report._id}`}>
+                      <button className=" bg-gray-600 text-white px-2 py-2 rounded hover:bg-blue-700">
+                        View More
+                      </button>
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div
-              key=""
-              className="bg-white border border-gray-300 rounded-lg shadow-md p-4"
-            >
-              <div className="p-5 ">
-                <h2 className="text-2xl font-semibold text-green-500 mb-4">
-                  Report Name
-                </h2>
-                <p className="text-gray-500">
-                  Comprehensive coverage for all crop types, with premium
-                  support. Comprehensive coverage for all crop types, with
-                  premium support. Comprehensive coverage for all crop types,
-                  with premium support. Comprehensive coverage for all crop
-                  types, with premium support. Reort Summary in short
-                </p>
+            ))}
+          </div>
+        </div> */}
+        <div className="flex flex-col gap-6 p-4 mt-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
+            {reportData.map((report) => (
+              <div
+                key={report._id}
+                className="bg-blue-50 border border-gray-300 rounded-lg shadow-lg p-6"
+              >
+                <div className="p-4">
+                  <h2 className="text-xl font-bold text-gray-600 mb-6 text-center">
+                    Report Name
+                  </h2>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-gray-700">
+                        Engineer:
+                      </span>
+                      <span className="text-gray-600">
+                        {report.jmStaffEngineer?.name}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-gray-700">
+                        Client:
+                      </span>
+                      <span className="text-gray-600">{report.clientName}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-gray-700">
+                        Architect:
+                      </span>
+                      <span className="text-gray-600">
+                        {report.architectName}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-gray-700">
+                        Report Created On:
+                      </span>
+                      <span className="text-gray-600">
+                        {new Date(report.date).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end mt-8">
+                    <Link to={`/allReport/${report._id}`}>
+                      <button className="bg-slate-950  text-white px-4 py-2 rounded-md shadow-lg hover:bg-slate-700 hover:scale-105 transition-transform">
+                        View More
+                      </button>
+                    </Link>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div
-              key=""
-              className="bg-white border border-gray-300 rounded-lg shadow-md p-4"
-            >
-              <div className="p-5 ">
-                <h2 className="text-2xl font-semibold text-green-500 mb-4">
-                  Report Name
-                </h2>
-                <p className="text-gray-500">
-                  Comprehensive coverage for all crop types, with premium
-                  support. Comprehensive coverage for all crop types, with
-                  premium support. Comprehensive coverage for all crop types,
-                  with premium support. Comprehensive coverage for all crop
-                  types, with premium support. Reort Summary in short
-                </p>
-              </div>
-            </div>
-            <div
-              key=""
-              className="bg-white border border-gray-300 rounded-lg shadow-md p-4"
-            >
-              <div className="p-5 ">
-                <h2 className="text-2xl font-semibold text-green-500 mb-4">
-                  Report Name
-                </h2>
-                <p className="text-gray-500">
-                  Comprehensive coverage for all crop types, with premium
-                  support. Comprehensive coverage for all crop types, with
-                  premium support. Comprehensive coverage for all crop types,
-                  with premium support. Comprehensive coverage for all crop
-                  types, with premium support. Reort Summary in short
-                </p>
-              </div>
-            </div>
-            <div
-              key=""
-              className="bg-white border border-gray-300 rounded-lg shadow-md p-4"
-            >
-              <div className="p-5 ">
-                <h2 className="text-2xl font-semibold text-green-500 mb-4">
-                  Report Name
-                </h2>
-                <p className="text-gray-500">
-                  Comprehensive coverage for all crop types, with premium
-                  support. Comprehensive coverage for all crop types, with
-                  premium support. Comprehensive coverage for all crop types,
-                  with premium support. Comprehensive coverage for all crop
-                  types, with premium support. Reort Summary in short
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
