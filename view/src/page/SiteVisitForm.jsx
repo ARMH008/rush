@@ -169,7 +169,7 @@ const SiteVisitForm = () => {
       subItems: [
         { key: "columnReinforcement", label: "Column reinforcement" },
         { key: "beamBottoms", label: "Beam bottoms" },
-        { key: "beamSides", label: "Beam sides" },
+        { key: "beamSlides", label: "Beam sides" },
         { key: "slabBottom", label: "Slab bottom" },
         { key: "chajjaSlabSlides", label: "Chajja, slab sides" },
       ],

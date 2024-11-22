@@ -2,13 +2,14 @@
 import React, { useEffect, useState } from "react";
 
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 const SiteReport = () => {
   const [reportData, setReportData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const params = useParams();
+  const navigate = useNavigate(); // Add navigation hook
   const [filter, setFilter] = useState("all"); // "all", "checked", "unchecked"
   useEffect(() => {
     const fetchReportData = async () => {
@@ -26,45 +27,9 @@ const SiteReport = () => {
 
     fetchReportData();
   }, [params.id]);
-  const downloadPDF = async () => {
-    try {
-      console.log("Downloading PDF from API...");
-
-      // Fetch the PDF from the API
-      const response = await fetch(
-        `http://127.0.0.1:3000/api/v1/sitereport/${params.id}/pdf`,
-        {
-          method: "GET",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch PDF: ${response.statusText}`);
-      }
-
-      // Get the PDF blob from the response
-      const pdfBlob = await response.blob();
-      console.log("pdfBlob", pdfBlob);
-
-      // Create a temporary URL for the PDF blob
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-
-      // Create a temporary anchor element to trigger download
-      const link = document.createElement("a");
-      link.href = pdfUrl;
-      link.download = "site_report.pdf";
-      document.body.appendChild(link);
-      link.click();
-
-      // Clean up the temporary URL and anchor element
-      URL.revokeObjectURL(pdfUrl);
-      document.body.removeChild(link);
-
-      console.log("PDF downloaded successfully!");
-    } catch (error) {
-      console.error("Error downloading PDF:", error);
-      alert("There was an error downloading the PDF. Please try again later.");
-    }
+  const navigateToPDF = () => {
+    // Navigate to PDF route with the current site report ID
+    navigate(`/pdf/${params.id}`);
   };
   const handleFilterChange = (e) => setFilter(e.target.value);
 
@@ -93,6 +58,7 @@ const SiteReport = () => {
       description:
         "Twisted, defective, spliced, damaged, decayed props, planks, plates, plywood, etc., are removed/replaced.",
     },
+
     {
       key: "formworkCleaned",
       description: "Formwork is cleaned thoroughly.",
@@ -123,7 +89,7 @@ const SiteReport = () => {
       subItems: [
         { key: "columnReinforcement", label: "Column reinforcement" },
         { key: "beamBottoms", label: "Beam bottoms" },
-        { key: "beamSides", label: "Beam sides" },
+        { key: "beamSlides", label: "Beam sides" },
         { key: "slabBottom", label: "Slab bottom" },
         { key: "chajjaSlabSlides", label: "Chajja, slab sides" },
       ],
@@ -262,7 +228,7 @@ const SiteReport = () => {
 
                 <button
                   className="bg-slate-950 text-white px-4 py-2 rounded-md shadow-lg hover:bg-slate-700 hover:scale-105 transition-transform"
-                  onClick={downloadPDF}
+                  onClick={navigateToPDF}
                 >
                   PDF Download
                 </button>

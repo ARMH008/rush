@@ -5,21 +5,23 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useParams } from "react-router-dom";
 function PdfReport() {
+  const { id } = useParams(); // Extract the ID from the URL
   const [reportData, setReportData] = useState(null);
-  const params = useParams();
 
   useEffect(() => {
-    // Fetch the data from API
-    axios
-      .get(`http://127.0.0.1:3000/api/v1/sitereport/${params.id}`)
-      .then((response) => {
+    const fetchReportData = async () => {
+      try {
+        const response = await axios.get(
+          `http://127.0.0.1:3000/api/v1/sitereport/${id}`
+        );
         setReportData(response.data.data.data);
-        console.log(response.data.data.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching the report data:", error);
-      });
-  }, [params.id]);
+      } catch (error) {
+        console.error("Failed to fetch report data", error);
+      }
+    };
+
+    fetchReportData();
+  }, [id]);
 
   if (!reportData) {
     return <div>Loading...</div>;
@@ -30,7 +32,7 @@ function PdfReport() {
 
       // Fetch the PDF from the API
       const response = await fetch(
-        `http://127.0.0.1:3000/api/v1/sitereport/${params.id}/pdf`,
+        `http://127.0.0.1:3000/api/v1/sitereport/report/${id}`,
         {
           method: "GET",
         }
@@ -67,6 +69,7 @@ function PdfReport() {
     clientName,
     architectName,
     date,
+    projectName,
     time,
     siteVisitCheckingDetails,
     checklist,
@@ -75,6 +78,7 @@ function PdfReport() {
     jmStaffEngineer,
     clientRepresentativeName,
     contractorRepresentativeName,
+    clientsign,
   } = reportData;
   return (
     <>
@@ -278,11 +282,19 @@ function PdfReport() {
         .client-architect-table th {
           background-color: #f4f4f4;
         }
+                .logo {
+        width: 80px;
+        height: 80px;
+      }
       `}</style>
       <div id="report-content">
         <div className="page-container">
-          <div className="header">
+          <div className="header ">
             <div className="header-text">
+              <img
+                src="https://res.cloudinary.com/dkppo2ktq/image/upload/v1732040103/epy7aps0wg1rs7faaspt.jpg"
+                className="logo"
+              ></img>
               <h1>Jayesh Makwana</h1>
               <p>
                 (I.M.E.Structure, A.M.I.E.)
@@ -297,7 +309,7 @@ function PdfReport() {
             <div className="details">
               <div>
                 <label>Project:</label>
-                <span>__________________</span>
+                <span> {projectName || "__________________"}</span>
               </div>
 
               <div>
@@ -330,8 +342,8 @@ function PdfReport() {
               </thead>
               <tbody>
                 <tr>
-                  <td>{reportData.clientName || "__________________"}</td>
-                  <td>{reportData.architectName || "__________________"}</td>
+                  <td>{clientName || "__________________"}</td>
+                  <td>{architectName || "__________________"}</td>
                 </tr>
               </tbody>
             </table>
@@ -414,6 +426,19 @@ function PdfReport() {
                       />
                     </td>
                     <td>Formwork is watertight.</td>
+                  </tr>
+                  <tr>
+                    <td className="checkbox-cell">
+                      <input
+                        type="checkbox"
+                        checked={reportData.checklist.formworkslabchhajja}
+                        readOnly
+                      />
+                    </td>
+                    <td>
+                      Formwork of slabs, chhajja etc is in level and ensured
+                      strong enough to take the loads and thrusts
+                    </td>
                   </tr>
                   <tr>
                     <td className="checkbox-cell">
@@ -712,7 +737,11 @@ function PdfReport() {
                   </tr>
                   <tr>
                     <td className="checkbox-cell">
-                      <input type="checkbox" readOnly />
+                      <input
+                        type="checkbox"
+                        checked={reportData.checklist.ptBeamsDimensions}
+                        readOnly
+                      />
                     </td>
                     <td>
                       The dimension and reinforcement of PT beams & slabs are
@@ -721,7 +750,11 @@ function PdfReport() {
                   </tr>
                   <tr>
                     <td className="checkbox-cell">
-                      <input type="checkbox" readOnly />
+                      <input
+                        type="checkbox"
+                        checked={reportData.checklist.ptBeamsFormwork}
+                        readOnly
+                      />
                     </td>
                     <td>
                       Centering, shuttering & formwork of PT beams & PT slabs
@@ -757,7 +790,13 @@ function PdfReport() {
                 <tr>
                   <td>Signature & Time</td>
                   <td></td>
-                  <td></td>
+                  <td className="h-20 w-70 overflow-hidden flex items-center justify-center">
+                    <img
+                      src={clientsign}
+                      alt="Client Signature"
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </td>
                   <td></td>
                 </tr>
                 <tr>

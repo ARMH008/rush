@@ -31,7 +31,7 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/allReport" element={<AllReportPage />} />
         <Route path="/allReport/:id" element={<SiteReport />} />
-        <Route path="/allReport/:id/pdf" element={<PdfReport />} />
+        <Route path="/pdf/:id" element={<PdfReport />} />
         <Route path="/uploadReport" element={<UploadReportForm />} />
         <Route path="/finalform" element={<SiteVisitForm />} />{" "}
         <Route path="/profile" element={<Dashboard />}>

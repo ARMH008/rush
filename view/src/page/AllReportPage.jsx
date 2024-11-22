@@ -1,16 +1,15 @@
-/* eslint-disable no-unused-vars */
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-const truncateText = (text, limit) => {
-  if (!text) return ""; // Handle cases where text might be undefined
-  return text.length > limit ? text.slice(0, limit) + "..." : text;
-};
+import { Search, FileText, User, Calendar, Building2 } from "lucide-react";
 
 const AllReportPage = () => {
   const [reportData, setReportData] = useState([]);
+  const [filteredReportData, setFilteredReportData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [searchName, setSearchName] = useState("");
+
   useEffect(function () {
     async function fetchReportData() {
       try {
@@ -19,16 +18,16 @@ const AllReportPage = () => {
         const response = await axios.get(
           `http://127.0.0.1:3000/api/v1/sitereport`
         );
-        console.log("response ", response.data.data.data); // Handle the response as needed
 
         if (response.status !== 200)
-          throw new Error("Something went wrong with fetchintg crops");
+          throw new Error("Something went wrong with fetching reports");
 
         const allReport = response.data.data.data;
         if (allReport.length === 0) {
-          throw new Error("No crops found");
+          throw new Error("No reports found");
         }
         setReportData(allReport);
+        setFilteredReportData(allReport);
 
         setIsLoading(false);
       } catch (err) {
@@ -39,141 +38,156 @@ const AllReportPage = () => {
     }
     fetchReportData();
   }, []);
-  return (
-    <>
-      <div className=" mx-auto max-w-screen-xl p-6">
-        <div className="text-center ">
-          <h1 className="text-4xl font-bold text-blue-400 mb-8 ">All Report</h1>
-          <hr className="border-t-4 border-blue-600  mx-auto" />
-        </div>
-        {/* Search Button */}
 
-        <label className="mt-10 mx-auto max-w-xl py-2 px-6 rounded-full bg-gray-50 border flex focus-within:border-gray-300">
-          <input
-            type="text"
-            placeholder="Search anything"
-            className="bg-transparent w-full focus:outline-none pr-4 font-semibold border-0 focus:ring-0 px-0 py-0"
-            name="topic"
-          />
-          <button className="flex flex-row items-center justify-center min-w-[130px] px-4 rounded-full font-m tracking-wide border disabled:cursor-not-allowed disabled:opacity-50 transition ease-in-out duration-150 text-base bg-black text-white font-medium border-transparent py-1.5 h-[38px] -mr-3">
-            Search
-          </button>
-        </label>
+  const handleSearch = async () => {
+    if (!searchName.trim()) {
+      setFilteredReportData(reportData);
+      return;
+    }
 
-        {/* Report container */}
-        {/*  <div className="flex flex-col gap-6 p-4 mt-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-            {reportData.map((report) => (
-              <div
-                key={report._id}
-                className="bg-white border border-gray-300 rounded-lg shadow-md p-4"
-              >
-                <div className="p-5 ">
-                  <h2 className="text-2xl font-semibold text-green-500 mb-4">
-                    Report Name
-                  </h2>
+    try {
+      const response = await axios.get(
+        `http://127.0.0.1:3000/api/v1/sitereport/search?name=${searchName}`
+      );
 
-                  <p className="flex items-center">
-                    <span className="font-semibold text-gray-700 w-32">
-                      Engineer:
-                    </span>
-                    <span className="text-gray-600">
-                      {report.jmStaffEngineer.name}
-                    </span>
-                  </p>
-                  <p className="flex items-center mt-3">
-                    <span className="font-semibold text-gray-700 w-32">
-                      Client:
-                    </span>
-                    <span className="text-gray-600">{report.clientName}</span>
-                  </p>
-                  <p className="flex items-center mt-2">
-                    <span className="font-semibold text-gray-700 w-32">
-                      Architect:
-                    </span>
-                    <span className="text-gray-600">
-                      {report.architectName}
-                    </span>
-                  </p>
-                  <p className="flex items-center mt-2">
-                    <span className="font-semibold text-gray-700 w-32">
-                      Report Created On:
-                    </span>
-                    <span className="text-gray-600 ">
-                      {new Date(report.date).toLocaleDateString()}
-                    </span>
-                  </p>
+      if (response.status !== 200)
+        throw new Error("Something went wrong with searching reports");
 
-                  <div className="flex justify-end mt-8 ">
-                    <Link to={`/allReport/${report._id}`}>
-                      <button className=" bg-gray-600 text-white px-2 py-2 rounded hover:bg-blue-700">
-                        View More
-                      </button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div> */}
-        <div className="flex flex-col gap-6 p-4 mt-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-            {reportData.map((report) => (
-              <div
-                key={report._id}
-                className="bg-blue-50 border border-gray-300 rounded-lg shadow-lg p-6"
-              >
-                <div className="p-4">
-                  <h2 className="text-xl font-bold text-gray-600 mb-6 text-center">
-                    Report Name
-                  </h2>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-700">
-                        Engineer:
-                      </span>
-                      <span className="text-gray-600">
-                        {report.jmStaffEngineer?.name}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-700">
-                        Client:
-                      </span>
-                      <span className="text-gray-600">{report.clientName}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-700">
-                        Architect:
-                      </span>
-                      <span className="text-gray-600">
-                        {report.architectName}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-700">
-                        Report Created On:
-                      </span>
-                      <span className="text-gray-600">
-                        {new Date(report.date).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
+      const searchResults = response.data.data.site;
+      setFilteredReportData(searchResults);
+    } catch (err) {
+      setError(err.message);
+      setFilteredReportData([]);
+    }
+  };
 
-                  <div className="flex justify-end mt-8">
-                    <Link to={`/allReport/${report._id}`}>
-                      <button className="bg-slate-950  text-white px-4 py-2 rounded-md shadow-lg hover:bg-slate-700 hover:scale-105 transition-transform">
-                        View More
-                      </button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchName(value);
+
+    // If search term is empty, reset to all reports
+    if (value === "") {
+      setFilteredReportData(reportData);
+    }
+  };
+
+  if (isLoading)
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
       </div>
-    </>
+    );
+
+  if (error)
+    return (
+      <div
+        className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+        role="alert"
+      >
+        {error}
+      </div>
+    );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
+            Site Reports
+          </h1>
+          <p className="text-xl text-gray-600">
+            Explore and manage your site reports
+          </p>
+        </div>
+
+        <div className="max-w-2xl mx-auto mb-12">
+          <div className="flex shadow-lg">
+            <input
+              type="text"
+              placeholder="Search by Architect or Client Name or Project Name"
+              className="w-full px-4 py-3 text-gray-700 bg-white rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={searchName}
+              onChange={handleSearchInputChange}
+            />
+            <button
+              onClick={handleSearch}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-r-lg hover:from-blue-600 hover:to-purple-700 transition duration-300 ease-in-out flex items-center"
+            >
+              <Search className="mr-2" />
+              Search
+            </button>
+          </div>
+        </div>
+
+        {filteredReportData.length === 0 ? (
+          <div className="text-center text-gray-500 py-12">
+            <FileText className="mx-auto h-16 w-16 mb-4 text-gray-400" />
+            <p className="text-xl">No reports found</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredReportData.map((report) => (
+              <div
+                key={report._id}
+                className="bg-white rounded-xl shadow-lg transform transition duration-300 hover:scale-105 hover:shadow-2xl"
+              >
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      {report.projectName}
+                    </h2>
+                    <FileText className="h-8 w-8 text-blue-500" />
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center text-gray-600">
+                      <User className="mr-3 h-5 w-5 text-blue-500" />
+                      <div>
+                        <span className="font-semibold">Engineer:</span>
+                        {report.jmStaffEngineer?.name || "Not Assigned"}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center text-gray-600">
+                      <Building2 className="mr-3 h-5 w-5 text-green-500" />
+                      <div>
+                        <span className="font-semibold">Client:</span>
+                        {report.clientName}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center text-gray-600">
+                      <Building2 className="mr-3 h-5 w-5 text-purple-500" />
+                      <div>
+                        <span className="font-semibold">Architect:</span>
+                        {report.architectName}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center text-gray-600">
+                      <Calendar className="mr-3 h-5 w-5 text-red-500" />
+                      <div>
+                        <span className="font-semibold">Created On:</span>
+                        {new Date(report.date).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-end">
+                    <Link to={`/allReport/${report._id}`}>
+                      <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-md hover:from-blue-600 hover:to-purple-700 transition duration-300 ease-in-out flex items-center">
+                        View Details
+                        <FileText className="ml-2 h-4 w-4" />
+                      </button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

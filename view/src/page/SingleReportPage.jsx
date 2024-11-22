@@ -66,37 +66,6 @@ const SingleReportPage = () => {
             Site Visit Report
           </h2>
 
-          {/*  <div className="space-y-4 grid-flow-row">
-            <div className="flex justify-between">
-              <div>
-                <label className="font-semibold">Project:</label>
-                <span className="ml-2">__________________</span>
-              </div>
-              <div>
-                <label className="font-semibold">Job No:</label>
-                <span className="ml-2">__________________</span>
-              </div>
-              <div>
-                <label className="font-semibold">Date:</label>
-                <span className="ml-2">
-                  {new Date(date).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-between">
-              <div>
-                <label className="font-semibold">Location:</label>
-                <span className="ml-2">__________________</span>
-              </div>
-              <div>
-                <label className="font-semibold">Engineer:</label>
-                <span className="ml-2">
-                  {jmStaffEngineer.name || "__________________"}
-                </span>
-              </div>
-            </div>
-          </div> */}
           <div className="grid gap-4 sm:grid-cols-1 m:grid-cols-2 lg:grid-cols-3">
             <div className="flex items-center">
               <label className="font-semibold">Project:</label>

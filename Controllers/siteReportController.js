@@ -147,6 +147,7 @@ exports.searchreport = catchAsync(async (req, res, next) => {
     $or: [
       { architectName: { $regex: new RegExp(searchQuery, "i") } },
       { clientName: { $regex: new RegExp(searchQuery, "i") } },
+      { projectName: { $regex: new RegExp(searchQuery, "i") } },
     ],
   });
   res.status(200).json({
@@ -284,173 +285,10 @@ exports.getInspectionTrends = catchAsync(async (req, res, next) => {
     data: trends,
   });
 });
-// exports.generatePDF = catchAsync(async (req, res, next) => {
-//   try {
-//     // URL to generate PDF from
-//     const url = "http://localhost:5173/pdf";
-
-//     // Launch a new browser instance
-//     const browser = await puppeteer.launch({
-//       ignoreDefaultArgs: ["--disable-extensions"],
-//       // args: ["--no-sandbox"],
-//       timeout: 1130000,
-//     });
-//     const page = await browser.newPage();
-
-//     // Navigate to the specified URL
-//     await page.goto(url, { timeout: 1160000, waitUntil: "networkidle0" });
-
-//     // Generate PDF
-//     const pdfBuffer = await page.pdf({
-//       format: "A4",
-//       printBackground: true,
-//       margin: {
-//         top: "20px",
-//         bottom: "20px",
-//         left: "20px",
-//         right: "20px",
-//       },
-//     });
-
-//     // Close the browser
-//     await browser.close();
-
-//     // Set response headers
-//     res.contentType("application/pdf");
-//     res.set("Content-Disposition", "inline; filename=generated-report.pdf");
-
-//     // Send the PDF buffer as response
-//     res.send(pdfBuffer);
-//   } catch (error) {
-//     // Handle any errors during PDF generation
-//     return next(new AppError(`PDF Generation Error: ${error.message}`, 500));
-//   }
-// });
-// exports.generatePDF = catchAsync(async (req, res, next) => {
-//   let browser = null;
-//   const url = "http://localhost:5173/pdf";
-//   try {
-//     // Launch a new browser instance
-//     browser = await puppeteer.launch({
-//       headless: true,
-//       args: [
-//         "--no-sandbox",
-//         "--disable-setuid-sandbox",
-//         "--disable-gpu",
-//         "--disable-dev-shm-usage",
-//       ],
-//       timeout: 60000,
-//     });
-
-//     const page = await browser.newPage();
-
-//     // Set viewport to ensure proper rendering
-//     await page.setViewport({ width: 1920, height: 1080 });
-
-//     // Navigate to the specified URL
-//     try {
-//       // Navigate to the page
-//       await page.goto(url, { waitUntil: "networkidle0" });
-
-//       // Remove the navbar and button from the DOM
-//       await page.evaluate(() => {
-//         const nav = document.querySelector("nav");
-//         if (nav) {
-//           nav.remove(); // This removes the <nav> from the page before rendering the PDF
-//         }
-//         const button = document.querySelector(
-//           "button[onClick='downloadPDF()']"
-//         );
-//         if (button) {
-//           button.remove();
-//         }
-//       });
-//     } catch (navigationError) {
-//       console.error("Navigation Error:", navigationError);
-//       throw new AppError(`Navigation failed: ${navigationError.message}`, 500);
-//     }
-
-//     // Generate PDF
-//     // const pdfBuffer = await page.pdf({
-//     //   width: "1200px", // Custom width
-//     //   height: "1600px", // Custom height
-//     //   printBackground: true,
-//     //   preferCSSPageSize: true,
-//     //   margin: {
-//     //     top: "20mm",
-//     //     bottom: "20mm",
-//     //     left: "20mm",
-//     //     right: "20mm",
-//     //   },
-//     //   displayHeaderFooter: false,
-//     // });
-//     const pdfBuffer = await page.pdf({
-//       format: "A3", // or use your custom size as needed
-//       printBackground: true,
-//       preferCSSPageSize: true,
-//       margin: {
-//         top: "20mm",
-//         bottom: "20mm",
-//         left: "20mm",
-//         right: "20mm",
-//       },
-//       displayHeaderFooter: false,
-//     });
-//     // Check if the PDF was generated correctly
-//     if (pdfBuffer.length === 0) {
-//       await browser.close();
-//       return next(new AppError("Failed to generate PDF", 500));
-//     }
-
-//     // Save the PDF to a temporary file
-//     const tempDir = path.join(__dirname, "temp");
-
-//     // Ensure the directory exists
-//     try {
-//       await fs.promises.mkdir(tempDir, { recursive: true });
-//     } catch (err) {
-//       console.error("Error creating directory:", err);
-//       return next(new AppError("Failed to create temporary directory", 500));
-//     }
-
-//     const tempFilePath = path.join(
-//       tempDir,
-//       `generated-report-${Date.now()}.pdf`
-//     );
-//     console.log("Saving PDF to:", tempFilePath); // Debugging output
-
-//     await fs.promises.writeFile(tempFilePath, pdfBuffer);
-
-//     // Set response headers with additional security
-//     res.contentType("application/pdf");
-//     res.set("Content-Disposition", "inline; filename=generated-report.pdf");
-//     res.set("X-Content-Type-Options", "nosniff");
-
-//     // Send the PDF file
-//     res.sendFile(tempFilePath);
-
-//     // Clean up the temporary file
-//     // await fs.promises.unlink(tempFilePath);
-
-//     // Close the browser
-//     await browser.close();
-//   } catch (error) {
-//     // Ensure browser is closed even if an error occurs
-//     if (browser) await browser.close();
-
-//     console.error("PDF Generation Comprehensive Error:", {
-//       message: error.message,
-//       stack: error.stack,
-//       url: url,
-//     });
-
-//     return next(new AppError(`PDF Generation Failed: ${error.message}`, 500));
-//   }
-// });
-
 exports.generatePDF = catchAsync(async (req, res, next) => {
   let browser = null;
-  const url = "http://localhost:5173/pdf"; // URL to generate the PDF from
+  const { id } = req.params; // Extract the site report ID from the request parameters
+  const url = `http://localhost:5173/pdf/${id}`; // URL to generate the PDF from, now including the ID
 
   try {
     // Launch a new browser instance
@@ -475,7 +313,6 @@ exports.generatePDF = catchAsync(async (req, res, next) => {
       await page.goto(url, { waitUntil: "networkidle0" });
 
       // Remove navbar and button before generating PDF
-      // Remove navbar and button before generating PDF and adjust layout
       await page.evaluate(() => {
         // Remove the navbar
         const nav = document.querySelector("nav");
@@ -535,7 +372,10 @@ exports.generatePDF = catchAsync(async (req, res, next) => {
 
     // Set response headers for the file download
     res.contentType("application/pdf");
-    res.set("Content-Disposition", `attachment; filename=generated-report.pdf`);
+    res.set(
+      "Content-Disposition",
+      `attachment; filename=site-report-${id}.pdf`
+    );
     res.set("X-Content-Type-Options", "nosniff");
 
     // Send the generated PDF file as a response

@@ -12,7 +12,7 @@ router
   )
   .get(siteController.getsitereports);
 
-router.get("/report", siteController.generatePDF);
+router.get("/report/:id", siteController.generatePDF);
 router.get("/search", siteController.searchreport);
 router.get("/trends", siteController.getInspectionTrends); // Moved this route above `/:id`
 router.get("/employeeperformance", siteController.getInspectionByEmployee);
