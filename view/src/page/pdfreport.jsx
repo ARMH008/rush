@@ -822,7 +822,9 @@ function PdfReport() {
           </div>
         </div>
       </div>
-      <button onClick={downloadPDF}>PDF</button>
+      <button className="" onClick={downloadPDF}>
+        PDF
+      </button>
     </>
   );
 }

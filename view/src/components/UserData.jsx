@@ -11,9 +11,9 @@ const useUserData = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5173/api/v1/users/user"
+          "http://localhost:5173/api/v1/user/user"
         );
-        //console.log("User Data info ", response.data);
+        console.log("repsonse", response.data);
         setUserData(response.data);
 
         setIsLoading(false);

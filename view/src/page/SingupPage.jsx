@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react";
 import axios from "axios";
-import loginImage from "../assets/image.png";
+import loginImage from "../assets/imageSingin.webp";
 import { Link } from "react-router-dom";
 import Loading from "../components/Animation/Loading";
 import SnackBar from "../components/Animation/SnackBar";
@@ -97,11 +97,11 @@ const SignupPage = () => {
     return isValid;
   };
   return (
-    <div className="h-[100vh] items-center flex justify-center px-5 lg:px-0">
+    <div className="h-[90vh] items-center flex justify-center px-5 lg:px-0 bg-gradient-to-br from-blue-50 to-blue-100">
       <div className="max-w-screen-xl bg-white border shadow sm:rounded-lg flex justify-center flex-1">
         <div className="flex-1  text-center hidden md:flex">
           <div
-            className="m-12 xl:m-16 w-full bg-contain bg-center bg-no-repeat"
+            className="w-full bg-cover bg-center bg-no-repeat"
             style={{
               //backgroundImage: `url(https://www.google.com/url?sa=i&url=https%3A%2F%2Ficonscout.com%2Fillustrations%2Ffarmers&psig=AOvVaw3ijm_4WmPD6qg3PGl0Igka&ust=1731750265432000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCKDZtsaG3okDFQAAAAAdAAAAABAJ)`,
               backgroundImage: `url(${loginImage})`,

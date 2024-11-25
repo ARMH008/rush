@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useState } from "react";
 
@@ -6,8 +7,9 @@ import { useState } from "react";
 import Demo from "./demo"; */
 import { Link, Outlet } from "react-router-dom";
 import AllReportPage from "./AllReportPage";
+import { useDragControls } from "framer-motion";
 
-const Dashboard = () => {
+const Dashboard = ({ userData }) => {
   // State to keep track of the active page
   const [activePage, setActivePage] = useState("profile");
 
@@ -111,49 +113,122 @@ const Dashboard = () => {
               </svg>
               Profile
             </Link>
-            <Link
-              to="chart"
-              className="flex items-center px-4 py-2 text-gray-100 hover:bg-indigo-600 group"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 mr-2 group-hover:transform group-hover:rotate-90"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-              Chart
-            </Link>
-            <Link
-              to="detailchart"
-              className="flex items-center px-4 py-2 text-gray-100 hover:bg-indigo-600 group"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 mr-2 group-hover:transform group-hover:rotate-90"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-              Detail Chart
-            </Link>
+            {(userData?.user?.role === "admin" ||
+              userData?.user.role === "enginner") && (
+              <>
+                <Link
+                  to="chart"
+                  className="flex items-center px-4 py-2 text-gray-100 hover:bg-indigo-600 group"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 mr-2 group-hover:transform group-hover:rotate-90"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                  Chart
+                </Link>
+                <Link
+                  to="detailchart"
+                  className="flex items-center px-4 py-2 text-gray-100 hover:bg-indigo-600 group"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 mr-2 group-hover:transform group-hover:rotate-90"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                  Detail Chart
+                </Link>
+                <Link
+                  to="userManagement"
+                  className="flex items-center px-4 py-2 mt-2 text-gray-100 hover:bg-indigo-600 group"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="h-6 w-6 mr-2 group-hover:hidden"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+                    />
+                  </svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="hidden group-hover:block h-6 w-6 mr-2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
+                    />
+                  </svg>
+                  User Management
+                </Link>
+                <Link
+                  to="reportManagement"
+                  className="flex items-center px-4 py-2 mt-2 text-gray-100 hover:bg-indigo-600 group"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="h-6 w-6 mr-2 group-hover:hidden"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+                    />
+                  </svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="hidden group-hover:block h-6 w-6 mr-2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
+                    />
+                  </svg>
+                  Report Management
+                </Link>
+              </>
+            )}
 
             {/* <!-- Messages with subitems --> */}
-            <div className="mb-2 relative group">
+            {/*  <div className="mb-2 relative group">
               <input
                 type="checkbox"
                 id="messages-toggle"
@@ -167,8 +242,7 @@ const Dashboard = () => {
                 Messages
               </label>
 
-              {/* <!-- SVG Icons op hetzelfde niveau als input --> */}
-              {/* <!-- <div class="absolute left-4 top-2 transform #dis-translate-y-1/2 flex items-center text-white"> --> */}
+            
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -200,7 +274,7 @@ const Dashboard = () => {
               </svg>
               {/* <!-- </div> -->
 					
-						<!-- Arrow Icon --> */}
+						
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-4 w-4 ml-auto transition-transform transform peer-checked:rotate-180 absolute right-4 top-3 #dis--translate-y-1/2 text-white"
@@ -224,43 +298,11 @@ const Dashboard = () => {
                   Subitem 2
                 </a>
               </div>
-            </div>
+            </div> */}
 
             {/* 	<!-- Favourites --> */}
-            <a
-              href="#"
-              className="flex items-center px-4 py-2 mt-2 text-gray-100 hover:bg-indigo-600 group"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                className="h-6 w-6 mr-2 group-hover:hidden"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
-                />
-              </svg>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                className="hidden group-hover:block h-6 w-6 mr-2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
-                />
-              </svg>
-              Favourites
-            </a>
+
+            {/* 	<!-- Favourites --> */}
 
             {/* 	<!-- Settings with subitems --> */}
             <div className="mb-2 relative group">
@@ -356,7 +398,7 @@ const Dashboard = () => {
       </div>
 
       {/* 	<!-- Main content --> */}
-      <div className="flex flex-col flex-1 overflow-y-auto">
+      <div className="flex flex-col flex-1 overflow-y-auto ">
         <div className="flex items-center justify-between h-16 bg-white border-b border-gray-200">
           <div className="flex items-center px-4">
             <label
@@ -417,7 +459,7 @@ const Dashboard = () => {
             </button>
           </div> */}
         </div>
-        <div className="w-9/10 p-4 overflow-y-auto ">
+        <div className="w-9/10 p-4 overflow-y-auto bg-gradient-to-br from-blue-50 to-blue-100">
           {/*  <h2 className="text-2xl font-semibold mb-4">{activePage}</h2> */}
           <Outlet />
         </div>

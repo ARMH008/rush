@@ -1,4 +1,4 @@
-import loginImage from "../assets/image.png";
+import loginImage from "../assets/imageSingin.webp";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useState } from "react";
@@ -28,7 +28,7 @@ const SigninPage = () => {
             "Content-Type": "application/json",
           },
         };
-        console.log("sending email ", email, password);
+
         const { data } = await axios.post(
           "/api/v1/user/login",
           { email, password },
@@ -40,16 +40,16 @@ const SigninPage = () => {
         if (data.status === "success") {
           //console.log("Login successful");
           setShowSuccessAlert(true);
-          setTimeout(() => setShowSuccessAlert(false), 2000); // Hide success alert after 3 seconds
+          setTimeout(() => setShowSuccessAlert(false), 1000); // Hide success alert after 3 seconds
 
           setTimeout(() => {
             navigate("/"); // Redirect to homepage
             window.location.reload(); // Reload the page
-          }, 2000); // Show success alert for 2 seconds
+          }, 1000); // Show success alert for 2 seconds
         }
       } catch (error) {
         setLoginError(true);
-        setTimeout(() => setLoginError(false), 2000); // Hide error alert after 3 seconds
+        setTimeout(() => setLoginError(false), 2000);
 
         console.error("Error logging in:", error);
       } finally {
@@ -88,11 +88,11 @@ const SigninPage = () => {
   };
   return (
     <>
-      <div className="h-[100vh] items-center flex justify-center px-5 lg:px-0">
+      <div className="h-[90vh] items-center flex justify-center px-5 lg:px-0 bg-gradient-to-br from-blue-50 to-blue-100">
         <div className="max-w-screen-xl bg-white border shadow sm:rounded-lg flex justify-center flex-1">
-          <div className="flex-1  text-center hidden md:flex">
+          <div className="flex-1 text-center hidden md:flex">
             <div
-              className="m-12 xl:m-16 w-full bg-contain bg-center bg-no-repeat"
+              className=" w-full bg-cover bg-center bg-no-repeat"
               style={{
                 //backgroundImage: `url(https://www.google.com/url?sa=i&url=https%3A%2F%2Ficonscout.com%2Fillustrations%2Ffarmers&psig=AOvVaw3ijm_4WmPD6qg3PGl0Igka&ust=1731750265432000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCKDZtsaG3okDFQAAAAAdAAAAABAJ)`,
                 backgroundImage: `url(${loginImage})`,
@@ -142,8 +142,13 @@ const SigninPage = () => {
                       required
                       placeholder="Password"
                     />
+                    {errors?.password && (
+                      <div className="text-red-500 text-xs mt-1">
+                        {errors.password}
+                      </div>
+                    )}
                     <p className=" text-xs text-gray-600 text-left">
-                      <Link to="/forgetpassword">
+                      <Link to="/forgetPassword">
                         <span className="text-blue-900 font-semibold">
                           {" "}
                           Forget Password?

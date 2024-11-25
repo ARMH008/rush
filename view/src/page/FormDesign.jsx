@@ -1,18 +1,28 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRef } from "react";
 import SignatureCanvas from "react-signature-canvas";
+import { useNavigate } from "react-router-dom";
+import Loading from "../components/Animation/Loading";
+import SnackBar from "../components/Animation/SnackBar";
 
-function FormDesign() {
-  const signatureRef = useRef();
+function FormDesign({ userData }) {
+  const clientSignatureRef = useRef();
+  const employeeSignatureRef = useRef();
   const [signatureImage, setSignatureImage] = useState(null);
+  const [employeeSignatureImage, setEmployeeSignatureImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [submittingFormError, setSubmittingFormError] = useState(false);
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const navigate = useNavigate();
+
+  //console.log("FormDaisn", LoginInfo);
   const [formData, setFormData] = useState({
     jmStaffEngineer: {
-      _id: "673b2c7b3137bd8e4c363e2b",
-      name: "pruthvij",
-      email: "pruttdu@gmail.com",
+      _id: "",
+      name: "",
+      email: "",
     },
     time: "2:30",
     projectName: "",
@@ -27,6 +37,18 @@ function FormDesign() {
     contractorRepresentativeName: "",
     /* signature: null, */
   });
+  useEffect(() => {
+    if (userData) {
+      setFormData((prevData) => ({
+        ...prevData,
+        jmStaffEngineer: {
+          _id: userData.user?._id || "",
+          name: userData.user?.name || "",
+          email: userData.user?.email || "",
+        },
+      }));
+    }
+  }, [userData]); // Only re-run when userData changes
   const [numImages, setNumImages] = useState(0);
   const [numImagesm, setNumImagesm] = useState(0);
   const [checklist, setChecklist] = useState({
@@ -138,33 +160,8 @@ function FormDesign() {
     });
   };
 
-  const getLabel = (key, parentKey = null) => {
-    if (parentKey) {
-      return labelMapping[parentKey]?.[key] || key; // Nested key
-    }
-    return labelMapping[key] || key; // Top-level key
-  };
   // Split items into two arrays for left and right tables
-  const allItems = Object.entries(labelMapping).reduce((acc, [key, value]) => {
-    if (typeof value === "object") {
-      Object.entries(value).forEach(([subKey, subLabel]) => {
-        acc.push({
-          key: `${key}.${subKey}`,
-          label: subLabel,
-          checked: checklist[key]?.[subKey] || false,
-        });
-      });
-    } else {
-      acc.push({
-        key,
-        label: value,
-        checked: checklist[key] || false,
-      });
-    }
-    return acc;
-  }, []);
 
-  const midpoint = Math.ceil(allItems.length / 2);
   // const leftTableItems = allItems.slice(0, midpoint);
   // const rightTableItems = allItems.slice(midpoint);
   const areAllNestedChecked = (nestedItems) => {
@@ -294,15 +291,15 @@ function FormDesign() {
 
     const midpoint = Math.ceil(items.length / 2);
     return {
-      leftTableItems: items.slice(0, midpoint),
-      rightTableItems: items.slice(midpoint),
+      leftTableItems: items.slice(0, midpoint - 1),
+      rightTableItems: items.slice(midpoint - 1),
     };
   };
 
   const { leftTableItems, rightTableItems } = processChecklistItems();
 
-  // Handle signature canvas save as image
-  const handleSaveSignature = () => {
+  // Handle signature canvas save as image for client  okay
+  /* const handleSaveSignature = () => {
     const signatureData = signatureRef.current
       .getTrimmedCanvas()
       .toDataURL("image/png");
@@ -317,6 +314,45 @@ function FormDesign() {
   const handleClearSignature = () => {
     signatureRef.current.clear(); // Clear the canvas
     setSignatureImage(null); // Reset image state
+  };
+
+  // Handle signature canvas save as image for Employee
+  const handleSaveEmployeeSignature = () => {
+    const signatureData = employeeSignatureRef.current
+      .getTrimmedCanvas()
+      .toDataURL("image/png");
+    setEmployeeSignatureImage(signatureData);
+    formData.employeeSignature = signatureData;
+    console.log("Employee Signature saved to formData:", formData);
+  };
+
+  const handleClearEmployeeSignature = () => {
+    employeeSignatureRef.current.clear();
+    setEmployeeSignatureImage(null);
+  }; */
+
+  const handleSaveSignature = (type) => {
+    const signatureRef =
+      type === "client" ? clientSignatureRef : employeeSignatureRef;
+    const setSignature =
+      type === "client" ? setSignatureImage : setEmployeeSignatureImage;
+
+    if (signatureRef.current && !signatureRef.current.isEmpty()) {
+      const dataUrl = signatureRef.current.toDataURL();
+      setSignature(dataUrl);
+    }
+  };
+
+  const handleClearSignature = (type) => {
+    const signatureRef =
+      type === "client" ? clientSignatureRef : employeeSignatureRef;
+    const setSignature =
+      type === "client" ? setSignatureImage : setEmployeeSignatureImage;
+
+    if (signatureRef.current) {
+      signatureRef.current.clear();
+      setSignature(null);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -390,10 +426,10 @@ function FormDesign() {
     }
 
     // If you're using signature canvas
-    if (signatureRef.current) {
+    if (clientSignatureRef.current) {
       // Convert client signature to blob
       const clientSignatureBlob = await new Promise((resolve) => {
-        const canvas = signatureRef.current.getTrimmedCanvas();
+        const canvas = clientSignatureRef.current.getTrimmedCanvas();
         canvas.toBlob(resolve, "image/png");
       });
       if (clientSignatureBlob) {
@@ -404,8 +440,23 @@ function FormDesign() {
         );
       }
     }
+    // Handle employee signature
+    if (employeeSignatureRef.current) {
+      const employeeSignatureBlob = await new Promise((resolve) => {
+        const canvas = employeeSignatureRef.current.getTrimmedCanvas();
+        canvas.toBlob(resolve, "image/png");
+      });
+      if (employeeSignatureBlob) {
+        formDataToSend.append(
+          "employeesign",
+          employeeSignatureBlob,
+          "employeeSignature.png"
+        );
+      }
+    }
 
     try {
+      setLoading(true);
       const response = await axios.post(
         "http://127.0.0.1:3000/api/v1/sitereport",
         formDataToSend,
@@ -417,392 +468,608 @@ function FormDesign() {
       );
 
       if (response.data.status === "success") {
-        alert("Form submitted successfully!");
+        setShowSuccessAlert(true);
         localStorage.removeItem("formData");
+        setTimeout(() => setShowSuccessAlert(false), 2000); // Hide success alert after 3 seconds
+        setTimeout(() => {
+          navigate("/allReport"); // Redirect to homepage
+          window.location.reload(); // Reload the page
+        }, 2000); // Show success alert for 2 seconds
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert(error.response?.data?.message || "Error submitting form");
+      setSubmittingFormError(true);
+      setTimeout(() => setSubmittingFormError(false), 2000); // Hide error alert after 2 seconds
+      //alert(error.response?.data?.message || "Error submitting form");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      /* className="p-6 max-w-5xl mx-auto bg-white shadow-lg rounded-md" */
-    >
-      <div className="bg-white  border-4 rounded-lg shadow relative m-10">
-        <div className="flex items-start justify-between p-5 border-b rounded-t">
-          <h3 className="text-xl font-semibold">Create New Report Here</h3>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="text-center m-12">
+        <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
+          Construction Site Report Form
+        </h1>
+        <p className="text-xl text-gray-600">
+          Complete Daily Site Report Below
+        </p>
+      </div>
+      <form
+        onSubmit={handleSubmit}
 
-        <div className="p-6 space-y-6">
-          <div className="grid grid-cols-6 gap-6">
-            <div className="col-span-6 sm:col-span-3">
-              <label
-                htmlFor="jmStaffEngineer"
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
-                Jm Staff Engineer Name
-              </label>
-              <input
-                type="text"
-                name="jmStaffEngineer"
-                id="jmStaffEngineer"
-                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
-                placeholder="Full Name"
-                required=""
-                value={formData.jmStaffEngineer.name}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="col-span-6 sm:col-span-3">
-              <label
-                htmlFor="projectName"
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
-                ProjectName
-              </label>
-              <input
-                type="text"
-                name="projectName"
-                id="projectName"
-                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
-                placeholder="Full Name"
-                required=""
-                value={formData.projectName}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="col-span-6 sm:col-span-3">
-              <label
-                htmlFor="clientName"
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
-                clientName
-              </label>
-              <input
-                type="text"
-                name="clientName"
-                id="clientName"
-                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
-                placeholder="clientName"
-                required=""
-                value={formData.clientName}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="col-span-6 sm:col-span-3">
-              <label
-                htmlFor="architectName"
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
-                architectName
-              </label>
-              <input
-                type="text"
-                name="architectName"
-                value={formData.architectName}
-                onChange={handleInputChange}
-                id="architectName"
-                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
-                placeholder="architectName"
-                required=""
-              />
-            </div>
-            <div className="col-span-6 sm:col-span-3">
-              <label
-                htmlFor="additionalRemarks"
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
-                Additional Remarks
-              </label>
-              <textarea
-                name="additionalRemarks"
-                value={formData.additionalRemarks}
-                onChange={handleInputChange}
-                id="additionalRemarks"
-                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
-                placeholder="Add your remarks here"
-                rows="4"
-                required
-              ></textarea>
-            </div>
+        /* className="p-6 max-w-5xl mx-auto bg-white shadow-lg rounded-md" */
+      >
+        <div className="bg-white  border-4 rounded-lg shadow relative m-10 bg-gradient-to-br from-indigo-50 to-indigo-100">
+          {/* <div className="flex items-start justify-between p-5 border-b rounded-t">
+            <h3 className="text-xl font-semibold">Create New Report Here</h3>
+          </div> */}
 
-            <div className="col-span-6 sm:col-span-3">
-              <label
-                htmlFor="specificNonCompliances"
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
-                Specific Non-Compliances
-              </label>
-              <textarea
-                name="specificNonCompliances"
-                value={formData.specificNonCompliances}
-                onChange={handleInputChange}
-                id="specificNonCompliances"
-                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
-                placeholder="Describe any specific non-compliances here"
-                rows="4"
-                required
-              ></textarea>
-            </div>
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-6 gap-6">
+              <div className="col-span-6 sm:col-span-3">
+                <label
+                  htmlFor="jmStaffEngineer"
+                  className="text-m font-medium text-gray-900 block mb-2"
+                >
+                  Jm Staff Engineer Name
+                </label>
+                <input
+                  type="text"
+                  name="jmStaffEngineer"
+                  id="jmStaffEngineer"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
+                  placeholder="Full Name"
+                  required=""
+                  value={formData.jmStaffEngineer.name}
+                  onChange={handleInputChange}
+                  readOnly
+                />
+              </div>
+              <div className="col-span-6 sm:col-span-3">
+                <label
+                  htmlFor="projectName"
+                  className="text-m font-medium text-gray-900 block mb-2"
+                >
+                  Project Name
+                </label>
+                <input
+                  type="text"
+                  name="projectName"
+                  id="projectName"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-m rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
+                  placeholder="Full Name"
+                  required=""
+                  value={formData.projectName}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="col-span-6 sm:col-span-3">
+                <label
+                  htmlFor="clientName"
+                  className="text-m font-medium text-gray-900 block mb-2"
+                >
+                  Client Name
+                </label>
+                <input
+                  type="text"
+                  name="clientName"
+                  id="clientName"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-m rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
+                  placeholder="clientName"
+                  required=""
+                  value={formData.clientName}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="col-span-6 sm:col-span-3">
+                <label
+                  htmlFor="architectName"
+                  className="text-m font-medium text-gray-900 block mb-2"
+                >
+                  Architect Name
+                </label>
+                <input
+                  type="text"
+                  name="architectName"
+                  value={formData.architectName}
+                  onChange={handleInputChange}
+                  id="architectName"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-m rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
+                  placeholder="architectName"
+                  required=""
+                />
+              </div>
+              <div className="col-span-6 sm:col-span-3">
+                <label
+                  htmlFor="additionalRemarks"
+                  className="text-m font-medium text-gray-900 block mb-2"
+                >
+                  Additional Remarks
+                </label>
+                <textarea
+                  name="additionalRemarks"
+                  value={formData.additionalRemarks}
+                  onChange={handleInputChange}
+                  id="additionalRemarks"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-m rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
+                  placeholder="Add your remarks here"
+                  rows="4"
+                  required
+                ></textarea>
+              </div>
 
-            <div className="col-span-6 sm:col-span-3">
-              <label
-                htmlFor="clientRepresentativeName"
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
-                clientRepresentativeName
-              </label>
-              <input
-                type="text"
-                name="clientRepresentativeName"
-                value={formData.clientRepresentativeName}
-                onChange={handleInputChange}
-                id="clientRepresentativeName"
-                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
-                placeholder="clientRepresentativeName"
-                required=""
-              />
-            </div>
+              <div className="col-span-6 sm:col-span-3">
+                <label
+                  htmlFor="specificNonCompliances"
+                  className="text-m font-medium text-gray-900 block mb-2"
+                >
+                  Specific Non-Compliances
+                </label>
+                <textarea
+                  name="specificNonCompliances"
+                  value={formData.specificNonCompliances}
+                  onChange={handleInputChange}
+                  id="specificNonCompliances"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-m rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
+                  placeholder="Describe any specific non-compliances here"
+                  rows="4"
+                  required
+                ></textarea>
+              </div>
 
-            <div className="col-span-6 sm:col-span-3">
-              <label
-                htmlFor="contractorRepresentativeName"
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
-                contractorRepresentativeName
-              </label>
-              <input
-                type="text"
-                name="contractorRepresentativeName"
-                value={formData.contractorRepresentativeName}
-                onChange={handleInputChange}
-                id="contractorRepresentativeName"
-                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
-                placeholder="contractorRepresentativeName"
-                required=""
-              />
-            </div>
+              <div className="col-span-6 sm:col-span-3">
+                <label
+                  htmlFor="clientRepresentativeName"
+                  className="text-m font-medium text-gray-900 block mb-2"
+                >
+                  Client Representative Name
+                </label>
+                <input
+                  type="text"
+                  name="clientRepresentativeName"
+                  value={formData.clientRepresentativeName}
+                  onChange={handleInputChange}
+                  id="clientRepresentativeName"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-m rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
+                  placeholder="clientRepresentativeName"
+                  required=""
+                />
+              </div>
 
-            <div className="col-span-6 sm:col-span-3">
-              <label
-                htmlFor="siteVisitCheckingDetails"
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
-                Site Visit Checking Details
-              </label>
-              <textarea
-                name="siteVisitCheckingDetails"
-                value={formData["siteVisitCheckingDetails"]}
-                onChange={handleInputChange}
-                id="siteVisitCheckingDetails"
-                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
-                placeholder="Provide details of the site visit checking here"
-                rows="4"
-                required
-              ></textarea>
-            </div>
+              <div className="col-span-6 sm:col-span-3">
+                <label
+                  htmlFor="contractorRepresentativeName"
+                  className="text-m font-medium text-gray-900 block mb-2"
+                >
+                  Contractor Representative Name
+                </label>
+                <input
+                  type="text"
+                  name="contractorRepresentativeName"
+                  value={formData.contractorRepresentativeName}
+                  onChange={handleInputChange}
+                  id="contractorRepresentativeName"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-m rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
+                  placeholder="contractorRepresentativeName"
+                  required=""
+                />
+              </div>
 
-            {/* Image Upload */}
-            <div className="col-span-6 sm:col-span-3">
-              <label
-                htmlFor="numImages"
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
-                How many site photos to upload?
-              </label>
-              <input
-                type="number"
-                id="numImages"
-                min="0"
-                value={numImages}
-                onChange={(e) => {
-                  setNumImages(Number(e.target.value));
-                  setFormData((prev) => ({
-                    ...prev,
-                    sitePhotos: Array(Number(e.target.value)).fill(null), // Reset the sitePhotos array
-                  }));
-                }}
-                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
-              />
+              <div className="col-span-6 sm:col-span-3">
+                <label
+                  htmlFor="siteVisitCheckingDetails"
+                  className="text-m font-medium text-gray-900 block mb-2"
+                >
+                  Site Visit Checking Details
+                </label>
+                <textarea
+                  name="siteVisitCheckingDetails"
+                  value={formData["siteVisitCheckingDetails"]}
+                  onChange={handleInputChange}
+                  id="siteVisitCheckingDetails"
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-m rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
+                  placeholder="Provide details of the site visit checking here"
+                  rows="4"
+                  required
+                ></textarea>
+              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
-                {Array.from({ length: numImages }).map((_, index) => (
-                  <div key={index} className="mb-4">
-                    <label className="block font-medium mb-2">
-                      Upload Site Photo {index + 1}
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        setFormData((prev) => {
-                          const updatedSitePhotos = [...prev.sitePhotos];
-                          updatedSitePhotos[index] = file;
-                          return { ...prev, sitePhotos: updatedSitePhotos };
-                        });
-                      }}
-                      className="w-full border-gray-300 rounded-md shadow-sm"
-                    />
-                    {formData.sitePhotos[index] && (
-                      <img
-                        src={URL.createObjectURL(formData.sitePhotos[index])}
-                        alt={`Preview ${index + 1}`}
-                        className="mt-2 w-32 h-32 object-cover"
+              {/* Image Upload */}
+              <div className="col-span-6 sm:col-span-3">
+                <label
+                  htmlFor="numImages"
+                  className="text-m font-medium text-gray-900 block mb-2"
+                >
+                  How many site photos to upload?
+                </label>
+                <input
+                  type="number"
+                  id="numImages"
+                  min="0"
+                  value={numImages}
+                  onChange={(e) => {
+                    setNumImages(Number(e.target.value));
+                    setFormData((prev) => ({
+                      ...prev,
+                      sitePhotos: Array(Number(e.target.value)).fill(null), // Reset the sitePhotos array
+                    }));
+                  }}
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-m rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
+                />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
+                  {Array.from({ length: numImages }).map((_, index) => (
+                    <div key={index} className="mb-4">
+                      <label className="block font-medium mb-2">
+                        Upload Site Photo {index + 1}
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          setFormData((prev) => {
+                            const updatedSitePhotos = [...prev.sitePhotos];
+                            updatedSitePhotos[index] = file;
+                            return { ...prev, sitePhotos: updatedSitePhotos };
+                          });
+                        }}
+                        className="w-full border-gray-300 rounded-md shadow-sm"
                       />
-                    )}
+                      {formData.sitePhotos[index] && (
+                        <img
+                          src={URL.createObjectURL(formData.sitePhotos[index])}
+                          alt={`Preview ${index + 1}`}
+                          className="mt-2 w-32 h-32 object-cover"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Image Upload */}
+              <div className="col-span-6 sm:col-span-3">
+                <label
+                  htmlFor="numImages"
+                  className="text-m font-medium text-gray-900 block mb-2"
+                >
+                  How many modification Photo to upload?
+                </label>
+                <input
+                  type="number"
+                  id="numImagesm"
+                  min="0"
+                  value={numImagesm}
+                  onChange={(e) => {
+                    setNumImagesm(Number(e.target.value));
+                    setFormData((prev) => ({
+                      ...prev,
+                      modificationPhotos: Array(Number(e.target.value)).fill(
+                        null
+                      ), // Reset the sitePhotos array
+                    }));
+                  }}
+                  className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
+                />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
+                  {Array.from({ length: numImagesm }).map((_, index) => (
+                    <div key={index} className="mb-4">
+                      <label className="block font-medium mb-2">
+                        Upload modification Photo {index + 1}
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          setFormData((prev) => {
+                            const updatedModificationPhotos = [
+                              ...prev.modificationPhotos,
+                            ];
+                            updatedModificationPhotos[index] = file;
+                            return {
+                              ...prev,
+                              modificationPhotos: updatedModificationPhotos,
+                            };
+                          });
+                        }}
+                        className="w-full border-gray-300 rounded-md shadow-sm"
+                      />
+                      {formData.modificationPhotos[index] && (
+                        <img
+                          src={URL.createObjectURL(
+                            formData.modificationPhotos[index]
+                          )}
+                          alt={`Preview ${index + 1}`}
+                          className="mt-2 w-32 h-32 object-cover"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="w-full bg-white rounded-lg shadow-sm p-6 col-span-full">
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold mb-4">
+                    General Compliance Checklist
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    The following points must be ensured to be complied with
+                    before concreting:
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="checklist-section">
+                    <ChecklistTable items={leftTableItems} />
                   </div>
-                ))}
+                  <div className="checklist-section">
+                    <ChecklistTable items={rightTableItems} />
+                  </div>
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Image Upload */}
-            <div className="col-span-6 sm:col-span-3">
-              <label
-                htmlFor="numImages"
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
-                How many modification Photo to upload?
-              </label>
-              <input
-                type="number"
-                id="numImagesm"
-                min="0"
-                value={numImagesm}
-                onChange={(e) => {
-                  setNumImagesm(Number(e.target.value));
-                  setFormData((prev) => ({
-                    ...prev,
-                    modificationPhotos: Array(Number(e.target.value)).fill(
-                      null
-                    ), // Reset the sitePhotos array
-                  }));
-                }}
-                className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full p-2.5"
-              />
+          {/* Signature amin div */}
+          {/*  <div className="max-w-full">
+            <div className="max-w-lg mx-auto p-6 bg-white rounded-xl shadow-lg space-y-6">
+              <h2 className="text-2xl font-semibold text-gray-800 text-center">
+                Client Signature:
+              </h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
-                {Array.from({ length: numImagesm }).map((_, index) => (
-                  <div key={index} className="mb-4">
-                    <label className="block font-medium mb-2">
-                      Upload modification Photo {index + 1}
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        setFormData((prev) => {
-                          const updatedModificationPhotos = [
-                            ...prev.modificationPhotos,
-                          ];
-                          updatedModificationPhotos[index] = file;
-                          return {
-                            ...prev,
-                            modificationPhotos: updatedModificationPhotos,
-                          };
-                        });
-                      }}
-                      className="w-full border-gray-300 rounded-md shadow-sm"
-                    />
-                    {formData.modificationPhotos[index] && (
-                      <img
-                        src={URL.createObjectURL(
-                          formData.modificationPhotos[index]
-                        )}
-                        alt={`Preview ${index + 1}`}
-                        className="mt-2 w-32 h-32 object-cover"
-                      />
-                    )}
-                  </div>
-                ))}
+            
+              <div className="signature-pad border-2 border-gray-300 rounded-lg overflow-hidden sm:grid-cols-1 grid-cols-2">
+                <SignatureCanvas
+                  ref={signatureRef}
+                  penColor="black"
+                  backgroundColor="white"
+                  canvasProps={{
+                    width: 500,
+                    height: 200,
+                    className: "signature-canvas",
+                  }}
+                />
+                <h6 className="text-gray-600">
+                  *Note : Before Submitting Report Save Signanture
+                </h6>
               </div>
-            </div>
 
-            <div className="w-full bg-white rounded-lg shadow-sm p-6 col-span-full">
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-4">
-                  General Compliance Checklist
+            
+              <div className="flex justify-center space-x-4 mt-6">
+                <button
+                  type="button"
+                  onClick={handleSaveSignature}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                >
+                  Save Signature
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearSignature}
+                  className="bg-red-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400"
+                >
+                  Clear
+                </button>
+              </div>
+             
+              <h2 className="text-2xl font-semibold text-gray-800 text-center mt-8">
+                Employee Signature:
+              </h2>
+              <div className="signature-pad border-2 border-gray-300 rounded-lg overflow-hidden">
+                <SignatureCanvas
+                  ref={employeeSignatureRef}
+                  penColor="black"
+                  backgroundColor="white"
+                  canvasProps={{
+                    width: 500,
+                    height: 200,
+                    className: "signature-canvas",
+                  }}
+                />
+                <h6 className="text-gray-600">
+                  *Note: Before Submitting Report Save Signature
+                </h6>
+              </div>
+
+           
+              <div className="flex justify-center space-x-4 mt-6">
+                <button
+                  type="button"
+                  onClick={handleSaveEmployeeSignature}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                >
+                  Save Employee Signature
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearEmployeeSignature}
+                  className="bg-red-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400"
+                >
+                  Clear
+                </button>
+              </div>
+            
+              <div className="grid grid-cols-2 gap-4 mt-6">
+               
+                {signatureImage && (
+                  <div className="text-center">
+                    <h3 className="text-xl font-medium text-gray-700 mb-2">
+                      Client Signature Preview:
+                    </h3>
+                    <img
+                      src={signatureImage}
+                      alt="Client Signature Preview"
+                      className="w-38 h-32 border rounded-lg shadow-lg mx-auto p-5"
+                    />
+                  </div>
+                )}
+
+              
+                {employeeSignatureImage && (
+                  <div className="text-center">
+                    <h3 className="text-xl font-medium text-gray-700 mb-2">
+                      Employee Signature Preview:
+                    </h3>
+                    <img
+                      src={employeeSignatureImage}
+                      alt="Employee Signature Preview"
+                      className="w-38 h-32 border rounded-lg shadow-lg mx-auto p-5"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* {signatureImage && (
+              <div className="mt-6 text-center ">
+                <h3 className="text-xl font-medium text-gray-700 mb-2">
+                  Signature Preview:
+                </h3>
+                <img
+                  src={signatureImage}
+                  alt="Signature Preview"
+                  className="w-38 h-32 border rounded-lg shadow-lg mx-auto p-5"
+                />
+              </div>
+            )} 
+            </div>
+          </div> */}
+          <div className="container mx-auto px-4 py-8">
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Client Signature Section */}
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold text-gray-800 text-center">
+                  Client Signature
                 </h2>
-                <p className="text-gray-600 mb-6">
-                  The following points must be ensured to be complied with
-                  before concreting:
-                </p>
+
+                <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white">
+                  <SignatureCanvas
+                    ref={clientSignatureRef}
+                    penColor="black"
+                    backgroundColor="white"
+                    canvasProps={{
+                      className: "w-full h-48",
+                    }}
+                  />
+                  <p className="text-sm text-gray-600 p-2">
+                    *Note: Save signature before submitting
+                  </p>
+                </div>
+
+                <div className="flex justify-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSignature("client")}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 focus:outline-none transition-colors"
+                  >
+                    Save Signature
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleClearSignature("client")}
+                    className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-400 focus:outline-none transition-colors"
+                  >
+                    Clear
+                  </button>
+                </div>
+
+                {signatureImage && (
+                  <div className="mt-4">
+                    <h3 className="text-lg font-medium text-gray-700 mb-2 text-center">
+                      Preview
+                    </h3>
+                    <div className="border rounded-lg p-4 bg-white">
+                      <img
+                        src={signatureImage}
+                        alt="Client Signature Preview"
+                        className="max-h-32 mx-auto"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="checklist-section">
-                  <ChecklistTable items={leftTableItems} />
+
+              {/* Employee Signature Section */}
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold text-gray-800 text-center">
+                  Employee Signature
+                </h2>
+
+                <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white">
+                  <SignatureCanvas
+                    ref={employeeSignatureRef}
+                    penColor="black"
+                    backgroundColor="white"
+                    canvasProps={{
+                      className: "w-full h-48",
+                    }}
+                  />
+                  <p className="text-sm text-gray-600 p-2">
+                    *Note: Save signature before submitting
+                  </p>
                 </div>
-                <div className="checklist-section">
-                  <ChecklistTable items={rightTableItems} />
+
+                <div className="flex justify-center gap-4">
+                  <button
+                    onClick={() => handleSaveSignature("employee")}
+                    type="button"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 focus:outline-none transition-colors"
+                  >
+                    Save Signature
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleClearSignature("employee")}
+                    className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-400 focus:outline-none transition-colors"
+                  >
+                    Clear
+                  </button>
                 </div>
+
+                {employeeSignatureImage && (
+                  <div className="mt-4">
+                    <h3 className="text-lg font-medium text-gray-700 mb-2 text-center">
+                      Preview
+                    </h3>
+                    <div className="border rounded-lg p-4 bg-white">
+                      <img
+                        src={employeeSignatureImage}
+                        alt="Employee Signature Preview"
+                        className="max-h-32 mx-auto"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        </div>
-        <div className="max-w-lg mx-auto p-6 bg-white rounded-xl shadow-lg space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-800 text-center">
-            Create Signature:
-          </h2>
 
-          {/* Signature Canvas */}
-
-          <div className="signature-pad border-2 border-gray-300 rounded-lg overflow-hidden">
-            <SignatureCanvas
-              ref={signatureRef}
-              penColor="black"
-              backgroundColor="white"
-              canvasProps={{
-                width: 500,
-                height: 200,
-                className: "signature-canvas",
-              }}
-            />
-          </div>
-
-          {/* Buttons for Saving/Clearing Signature */}
-          <div className="flex justify-center space-x-4 mt-6">
-            <button
-              type="button"
-              onClick={handleSaveSignature}
-              className="bg-blue-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              Save Signature
-            </button>
-            <button
-              type="button"
-              onClick={handleClearSignature}
-              className="bg-red-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400"
-            >
-              Clear
-            </button>
-          </div>
-
-          {signatureImage && (
-            <div className="mt-6 text-center ">
-              <h3 className="text-xl font-medium text-gray-700 mb-2">
-                Signature Preview:
-              </h3>
-              <img
-                src={signatureImage}
-                alt="Signature Preview"
-                className="w-38 h-32 border rounded-lg shadow-lg mx-auto p-5"
-              />
+          {loading ? (
+            <Loading />
+          ) : (
+            <div className="p-6 border-t border-gray-200 rounded-b">
+              <button
+                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-md hover:from-blue-600 hover:to-purple-700 transition duration-300 ease-in-out flex items-center"
+                type="submit"
+              >
+                Submit Report
+              </button>
             </div>
           )}
-        </div>
-        <div className="p-6 border-t border-gray-200 rounded-b">
-          <button
-            className="text-white bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-            type="submit"
-          >
-            Save all
-          </button>
-        </div>
-        <style>{`
+          {submittingFormError && (
+            <SnackBar
+              message="Error In Submitting Form , Plz Try Again"
+              type="error"
+            />
+          )}
+          {showSuccessAlert && (
+            <SnackBar message="Form Submitted Succesfully " type="success" />
+          )}
+          <style>{`
           .checklist-container {
             border: 1px solid #e5e7eb;
           }
@@ -852,8 +1119,9 @@ function FormDesign() {
             background-color: #e5e7eb;
           }
         `}</style>
-      </div>
-    </form>
+        </div>
+      </form>
+    </div>
   );
 }
 
