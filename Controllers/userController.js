@@ -83,3 +83,45 @@ exports.updateme = catchAsync(async (req, res, next) => {
     },
   });
 });
+<<<<<<< HEAD
+=======
+
+// Factory function for deleting a document by ID
+exports.deleteOne = (Model) =>
+  catchAsync(async (req, res, next) => {
+    const doc = await Model.findByIdAndDelete(req.params.id);
+
+    if (!doc) {
+      return next(new AppError("No document found with that ID", 404));
+    }
+
+    res.status(204).json({
+      status: "success",
+      data: null,
+    });
+  });
+
+// Factory function for updating a document by ID
+exports.updateOne = (Model) =>
+  catchAsync(async (req, res, next) => {
+    const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!doc) {
+      return next(new AppError("No document found with that ID", 404));
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        data: doc,
+      },
+    });
+  });
+
+// Export the specific handlers for User model
+exports.updateUser = exports.updateOne(User);
+exports.deleteUser = exports.deleteOne(User);
+>>>>>>> c2397cf (alldone)

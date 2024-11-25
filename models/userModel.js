@@ -36,7 +36,11 @@ const userSchema = new mongoose.Schema({
   },
   active: {
     default: true,
+<<<<<<< HEAD
     select: false,
+=======
+
+>>>>>>> c2397cf (alldone)
     type: Boolean,
   },
 

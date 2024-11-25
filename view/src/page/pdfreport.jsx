@@ -127,7 +127,11 @@ function PdfReport() {
 
       /* Site Visit Report Section */
       .site-visit-section {
+<<<<<<< HEAD
         margin-bottom: 30px;
+=======
+
+>>>>>>> c2397cf (alldone)
       }
 
       .site-visit-section h2 {
@@ -171,7 +175,11 @@ function PdfReport() {
 
       /* Checklist Section */
       .checklist-section {
+<<<<<<< HEAD
         margin: 30px 0;
+=======
+
+>>>>>>> c2397cf (alldone)
       }
 
       .checklist-container {
@@ -789,12 +797,27 @@ function PdfReport() {
               <tbody>
                 <tr>
                   <td>Signature & Time</td>
+<<<<<<< HEAD
                   <td></td>
                   <td className="h-20 w-70 overflow-hidden flex items-center justify-center">
                     <img
                       src={clientsign}
                       alt="Client Signature"
                       className="max-w-full max-h-full object-contain"
+=======
+                  <td className="border p-3">
+                    <img
+                      src={reportData.employeesign}
+                      alt="Employee Signature"
+                      className="w-auto h-16 max-h-16 object-contain"
+                    />
+                  </td>
+                  <td className="border p-3">
+                    <img
+                      src={reportData.clientsign}
+                      alt="Client Signature"
+                      className="w-auto h-16 max-h-16 object-contain"
+>>>>>>> c2397cf (alldone)
                     />
                   </td>
                   <td></td>
@@ -822,7 +845,13 @@ function PdfReport() {
           </div>
         </div>
       </div>
+<<<<<<< HEAD
       <button onClick={downloadPDF}>PDF</button>
+=======
+      <button className="" onClick={downloadPDF}>
+        PDF
+      </button>
+>>>>>>> c2397cf (alldone)
     </>
   );
 }
