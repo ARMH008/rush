@@ -29,6 +29,7 @@ const SignupPage = () => {
         const config = {
           headers: {
             "Content-Type": "application/json",
+            withCredentials: true,
           },
         };
         const res = await axios.post(
