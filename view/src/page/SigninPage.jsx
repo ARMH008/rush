@@ -23,15 +23,15 @@ const SigninPage = () => {
     if (validateForm()) {
       try {
         setLoading(true);
-        const config = {
+        /* const config = {
           headers: {
             "Content-Type": "application/json",
           },
-        };
-        const { data } = await axios.post(
-          "/api/v1/user/login",
+        }; */
+        const { data } = await axiosInstance.post(
+          "/user/login",
           { email, password },
-          config
+         
         );
 
         //console.log(" log in status:", data.status);
