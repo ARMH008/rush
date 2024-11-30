@@ -15,12 +15,14 @@ const useUserData = () => {
           "https://rush-uctr.onrender.com/api/v1/user/user"
         ); */
           const response = await axiosInstance.get("/user/user");
-        console.log("repsonse", response.data);
+        console.log("repsonse :", response);
         setUserData(response.data);
 
         setIsLoading(false);
       } catch (error) {
-        setError(error);
+        console.error("Error fetching user data:", error);
+    setError(error.message || "Unknown error");
+       
         setIsLoading(false);
       }
     };
