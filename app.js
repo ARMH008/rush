@@ -31,7 +31,7 @@ app.use(express.json());
 app.use(cookieparser());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "https://rush-uctr.onrender.com",
     credentials: true,
     origin: true,
     optionsSuccessStatus: 200,
