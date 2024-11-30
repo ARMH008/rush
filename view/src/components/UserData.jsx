@@ -11,7 +11,7 @@ const useUserData = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5173/api/v1/user/user"
+          "https://rush-construction-backend.onrender.com/api/v1/user/user"
         );
         console.log("repsonse", response.data);
         setUserData(response.data);
