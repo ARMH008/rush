@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 //import Cookies from "js-cookie";
+import { axiosInstance } from "../lib/axios";
 
 const useUserData = () => {
   const [userData, setUserData] = useState({});
@@ -10,9 +11,10 @@ const useUserData = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
+       /*  const response = await axios.get(
           "https://rush-uctr.onrender.com/api/v1/user/user"
-        );
+        ); */
+          const response = await axiosInstance.get("/users/user");
         console.log("repsonse", response.data);
         setUserData(response.data);
 
