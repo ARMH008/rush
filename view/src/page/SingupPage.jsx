@@ -32,7 +32,7 @@ const SignupPage = () => {
           },
         };
         const res = await axios.post(
-          "http://localhost:3000/api/v1/user/signup",
+          "https://rush-construction-backend.onrender.com/api/v1/user/signup",
           {
             name,
             email,
