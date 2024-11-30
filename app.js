@@ -33,7 +33,7 @@ app.use(
   cors({
     origin: "https://rush-uctr.onrender.com",
     credentials: true,
-    origin: true,
+  
     optionsSuccessStatus: 200,
     allowedHeaders: [
       "set-cookie",
