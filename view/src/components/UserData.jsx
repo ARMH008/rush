@@ -14,7 +14,7 @@ const useUserData = () => {
        /*  const response = await axios.get(
           "https://rush-uctr.onrender.com/api/v1/user/user"
         ); */
-          const response = await axiosInstance.get("/users/user");
+          const response = await axiosInstance.get("/user/user");
         console.log("repsonse", response.data);
         setUserData(response.data);
 
