@@ -1,9 +1,10 @@
 import loginImage from "../assets/Home/hero3.webp";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+
 import { useState } from "react";
 import Loading from "../components/Animation/Loading";
 import SnackBar from "../components/Animation/SnackBar";
+import { axiosInstance } from "../lib/axios";
 
 const SigninPage = () => {
   const [email, setEmail] = useState("");
