@@ -5,6 +5,8 @@ import loginImage from "../assets/Home/hero3.webp";
 import { Link } from "react-router-dom";
 import Loading from "../components/Animation/Loading";
 import SnackBar from "../components/Animation/SnackBar";
+import { axiosInstance } from "../lib/axios";
+
 const SignupPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -32,7 +34,7 @@ const SignupPage = () => {
             withCredentials: true,
           },
         }; */
-        const res = await axios.post(
+        const res = await ‎axiosInstance.post(
           "/user/signup",
           {
             name,
