@@ -30,7 +30,7 @@ if (process.env.NODE_ENV === "development") {
 if (process.env.NODE_ENV !== "production") {
   app.use(
     cors({
-      origin: "*",
+    origin: "https://rush-construction-frontend.onrender.com",
       credentials: true,
     })
   );
