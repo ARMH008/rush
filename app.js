@@ -27,8 +27,16 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 app.use(express.json());
+if (process.env.NODE_ENV !== "production") {
+  app.use(
+    cors({
+      origin: "*",
+      credentials: true,
+    })
+  );
+}
 //app.use(express.urlencoded({ extended: true }));
-app.use(cookieparser());
+/* app.use(cookieparser());
 app.use(
   cors({
     origin: "https://rush-uctr.onrender.com",
@@ -43,7 +51,7 @@ app.use(
     ],
   })
 );
-app.use(cookieparser());
+app.use(cookieparser()); */
 
 //data sanitization against NoSQL query injection
 app.use(monogsantize());
@@ -58,5 +66,11 @@ app.use("/api/v1/sitereport", siteRouter);
 app.all("*", (req, res, next) => {
   next(new AppError(`can't find the ${req.originalUrl} url`));
 });
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "view/dist")));
 
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "view", "dist", "index.html"));
+  });
+}
 module.exports = app;
