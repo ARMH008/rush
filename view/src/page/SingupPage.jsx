@@ -41,7 +41,7 @@ const SignupPage = () => {
             email,
             password,
             passwordConfirm,
-          },
+          }
          
         );
 
