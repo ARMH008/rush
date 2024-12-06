@@ -14,7 +14,7 @@ const signToken = (id) => {
 };
 
 const createSendToken = (user, statusCode, res) => {
-  const token = signToken(user._id);
+ /*  const token = signToken(user._id);
   const cookieOptions = {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
@@ -23,8 +23,16 @@ const createSendToken = (user, statusCode, res) => {
   };
   if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
 
-  res.cookie("jwt", token, cookieOptions);
-
+  res.cookie("jwt", token, cookieOptions); */
+ const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "10d",
+  });
+  res.cookie("jwt", token, {
+    httpOnly: true,
+    maxAge: 3 * 24 * 60 * 60 * 1000,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+  });
   // Remove sensitive data from output
   user.password = undefined;
 
