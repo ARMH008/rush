@@ -26,21 +26,21 @@ const SignupPage = () => {
     try {
       setLoading(true);
       if (validateForm()) {
-        const config = {
+       /*  const config = {
           headers: {
             "Content-Type": "application/json",
             withCredentials: true,
           },
-        };
+        }; */
         const res = await axios.post(
-          "https://rush-construction-backend.onrender.com/api/v1/user/signup",
+          "/user/signup",
           {
             name,
             email,
             password,
             passwordConfirm,
           },
-          config
+         
         );
 
         //console.log("Submitting form data:", res.data.data);
