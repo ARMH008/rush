@@ -1,8 +1,11 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import eslint from "vite-plugin-eslint";
+//import eslint from "vite-plugin-eslint";
 
 export default defineConfig({
+  plugins: [react()],
+});
+/* export default defineConfig({
   plugins: [react(), eslint()],
   server: {
     proxy: {
@@ -13,7 +16,7 @@ export default defineConfig({
       },
     },
   },
-});
+}); */
 // vite.config.js
 
 /*  npm install vite-plugin-eslint --save-dev
