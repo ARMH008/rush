@@ -57,9 +57,7 @@ app.use(cookieparser()); */
 app.use(monogsantize());
 //Data sanitization--malicious html code
 app.use(xss());
-app.get("/", (req, res) => {
-  res.send("Welcome to the API");
-});
+
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/sitereport", siteRouter);
 
