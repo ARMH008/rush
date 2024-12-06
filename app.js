@@ -27,19 +27,19 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-if (process.env.NODE_ENV !== "production") {
+/* if (process.env.NODE_ENV !== "production") {
   app.use(
     cors({
     origin: "https://rush-construction-frontend.onrender.com",
       credentials: true,
     })
   );
-}
+} */
 //app.use(express.urlencoded({ extended: true }));
-/* app.use(cookieparser());
+app.use(cookieparser());
 app.use(
   cors({
-    origin: "https://rush-uctr.onrender.com",
+     origin: "https://rush-construction-frontend.onrender.com",
     credentials: true,
   
     optionsSuccessStatus: 200,
@@ -51,7 +51,7 @@ app.use(
     ],
   })
 );
-app.use(cookieparser()); */
+app.use(cookieparser());
 
 //data sanitization against NoSQL query injection
 app.use(monogsantize());
