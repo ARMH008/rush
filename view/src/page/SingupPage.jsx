@@ -34,16 +34,16 @@ const SignupPage = () => {
             withCredentials: true,
           },
         }; */
-        const res = await ‎axiosInstance.post(
-          "/user/signup",
-          {
-            name,
-            email,
-            password,
-            passwordConfirm,
-          }
-         
-        );
+       const res = await axiosInstance.post(
+  "/user/signup",
+  {
+    name,
+    email,
+    password,
+    passwordConfirm,
+  }
+);
+
 
         //console.log("Submitting form data:", res.data.data);
 
