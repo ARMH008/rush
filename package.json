@@ -6,7 +6,11 @@
   "scripts": {
     "start": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm install && npm install --prefix view && npm run build --prefix view"
   },
+  "keywords": [
+    "new"
+  ],
   "author": "pruthvij",
   "license": "ISC",
   "dependencies": {
